@@ -144,10 +144,10 @@
     (let ([ints (cubic-bezier-intersections bb1 bb2)])
       (if (> (length ints) 1)
           (let* ([marks1 (mark-bezier-with-points bb1 ints)]
-                [marks2 (mark-bezier-with-points bb2 ints)]
-                [bc1 (remove-parts-inside marks1 bb2)]
-                [bc2 (remove-parts-outside marks2 bb1)]
-                [r (join-parts bc1 bc2)])
+                 [marks2 (mark-bezier-with-points bb2 ints)]
+                 [bc1 (remove-parts-inside marks1 bb2)]
+                 [bc2 (remove-parts-outside marks2 bb1)]
+                 [r (join-parts bc1 bc2)])
             (if (clockwise? b1)
                 (map clockwise r)
                 (map c-clockwise r)))
@@ -165,10 +165,10 @@
     (let ([ints (cubic-bezier-intersections bb1 bb2)])
       (if (> (length ints) 1)
           (let* ([marks1 (mark-bezier-with-points bb1 ints)]
-                [marks2 (mark-bezier-with-points bb2 ints)]
-                [bc1 (remove-parts-inside marks1 bb2)]
-                [bc2 (remove-parts-inside marks2 bb1)]
-                [r (join-parts bc1 bc2)])
+                 [marks2 (mark-bezier-with-points bb2 ints)]
+                 [bc1 (remove-parts-inside marks1 bb2)]
+                 [bc2 (remove-parts-inside marks2 bb1)]
+                 [r (join-parts bc1 bc2)])
             (if (clockwise? b1)
                 (map clockwise r)
                 (map c-clockwise r)))
@@ -186,10 +186,10 @@
     (let ([ints (cubic-bezier-intersections bb1 bb2)])
       (if (> (length ints) 1)
           (let* ([marks1 (mark-bezier-with-points bb1 ints)]
-                [marks2 (mark-bezier-with-points bb2 ints)]
-                [bc1 (remove-parts-outside marks1 bb2)]
-                [bc2 (remove-parts-outside marks2 bb1)]
-                [r (join-parts bc1 bc2)])
+                 [marks2 (mark-bezier-with-points bb2 ints)]
+                 [bc1 (remove-parts-outside marks1 bb2)]
+                 [bc2 (remove-parts-outside marks2 bb1)]
+                 [r (join-parts bc1 bc2)])
             (if (clockwise? b1)
                 (map clockwise r)
                 (map c-clockwise r)))
@@ -336,12 +336,12 @@
 (define (split-curve-segment-at-point s v)
   (letrec ([aux (lambda (s1 start end)
                   (cond [(< (vec-length (vec- (car s1) v)) 2) start]
-                          [(< (vec-length (vec- (last s1) v)) 2) end]
-                          [(not (inside-bounding-box? v (segment-bounding-box s1))) #f]
-                          [else (let-values ([(a b) (split s1 0.5)])
-                                  (let ([fa (aux a start (+ start (* 0.5 (- end start))))])
-                                    (if fa fa
-                                        (aux b (+ start (* 0.5 (- end start))) end))))]))])
+                        [(< (vec-length (vec- (last s1) v)) 2) end]
+                        [(not (inside-bounding-box? v (segment-bounding-box s1))) #f]
+                        [else (let-values ([(a b) (split s1 0.5)])
+                                (let ([fa (aux a start (+ start (* 0.5 (- end start))))])
+                                  (if fa fa
+                                      (aux b (+ start (* 0.5 (- end start))) end))))]))])
     (let ([f (aux s 0 1)])
       (if f (split s f) (values null null)))))
 
@@ -482,7 +482,7 @@
                          ss1))])
     (remove-duplicates 
      (flatten (map (lambda (c) (apply cubic-segment-intersections c))
-                  cs)))))
+                   cs)))))
 
 ; CubicSegment CubicSegment -> (listOf Vec)
 ; produce a list of intersections between two bezier segments
@@ -530,13 +530,13 @@
                     (rotate (translate v (- (vec-x f)) (- (vec-y f))) 
                             (- a)))
                   s)])
-     (filter (lambda (v)
-               (< (- (+ (vec-length (vec- v (car l)))
-                        (vec-length (vec- (last l) v)))
-                     (vec-length (vec- (last l) (car l))))
-                  0.01))
-              (map (lambda (v) (translate (rotate v a) (vec-x f) (vec-y f)))
-                   (segment-intersect-hor 0 ts)))))
+    (filter (lambda (v)
+              (< (- (+ (vec-length (vec- v (car l)))
+                       (vec-length (vec- (last l) v)))
+                    (vec-length (vec- (last l) (car l))))
+                 0.01))
+            (map (lambda (v) (translate (rotate v a) (vec-x f) (vec-y f)))
+                 (segment-intersect-hor 0 ts)))))
     
 
 
@@ -547,18 +547,18 @@
    (let* ([ep (end-points s)]
           [vd (vec- (cdr ep) (car ep))]
           [bb (segment-bounding-box s)])
-       (cond [(or (< h (vec-y (car bb)))
-                  (> h (vec-y (cdr bb))))
-              null]
-             [(= (vec-y (car ep)) h) (list (car ep))]
-             [(= (vec-y (cdr ep)) h) (list (cdr ep))]
-             [(and (end-points-at-extrema? s)
-                   (< (vec-length vd) 0.002)
-                   (pass-through-hor? h (car ep) (cdr ep)))
-              (list (intersect-hor h (car ep) (cdr ep)))]
-             [else (let-values ([(sa sb) (split s 0.5)])
-                     (append (segment-intersect-hor h sa)
-                             (segment-intersect-hor h sb)))]))))
+     (cond [(or (< h (vec-y (car bb)))
+                (> h (vec-y (cdr bb))))
+            null]
+           [(= (vec-y (car ep)) h) (list (car ep))]
+           [(= (vec-y (cdr ep)) h) (list (cdr ep))]
+           [(and (end-points-at-extrema? s)
+                 (< (vec-length vd) 0.002)
+                 (pass-through-hor? h (car ep) (cdr ep)))
+            (list (intersect-hor h (car ep) (cdr ep)))]
+           [else (let-values ([(sa sb) (split s 0.5)])
+                   (append (segment-intersect-hor h sa)
+                           (segment-intersect-hor h sb)))]))))
   
 
 ; Number Segment -> (listOf Vec)
@@ -568,40 +568,40 @@
    (let* ([ep (end-points s)]
           [vd (vec- (cdr ep) (car ep))]
           [bb (segment-bounding-box s)])
-       (cond [(or (< v (vec-x (car bb)))
-                  (> v (vec-x (cdr bb))))
-              null]
-             [(= (vec-x (car ep)) v) (list (car ep))]
-             [(= (vec-x (cdr ep)) v) (list (cdr ep))]
-             [(and (end-points-at-extrema? s)
-                   (< (vec-length vd) 0.002)
-                   (pass-through-vert? v (car ep) (cdr ep)))
-              (list (intersect-vert v (car ep) (cdr ep)))]
-             [else (let-values ([(sa sb) (split s 0.5)])
-                     (append (segment-intersect-vert v sa)
-                             (segment-intersect-vert v sb)))]))))
+     (cond [(or (< v (vec-x (car bb)))
+                (> v (vec-x (cdr bb))))
+            null]
+           [(= (vec-x (car ep)) v) (list (car ep))]
+           [(= (vec-x (cdr ep)) v) (list (cdr ep))]
+           [(and (end-points-at-extrema? s)
+                 (< (vec-length vd) 0.002)
+                 (pass-through-vert? v (car ep) (cdr ep)))
+            (list (intersect-vert v (car ep) (cdr ep)))]
+           [else (let-values ([(sa sb) (split s 0.5)])
+                   (append (segment-intersect-vert v sa)
+                           (segment-intersect-vert v sb)))]))))
  
 
 ; Real Bezier Natural -> (listOf Vec)
 ; produce the list of intesection between the Bezier curve (of nth order) and the horizontal line y=h
 (define (bezier-intersect-hor h b [n 3])
   (remove-duplicates
-          (foldl (lambda (s acc)
-                   (append acc (segment-intersect-hor h s)))
-                 '()
-                 (segments b n))
-          vec=))
+   (foldl (lambda (s acc)
+            (append acc (segment-intersect-hor h s)))
+          '()
+          (segments b n))
+   vec=))
 
 
 ; Real Bezier Natural -> (listOf Vec)
 ; produce the list of intesection between the Bezier curve (of nth order) and the vertical line x=v
 (define (bezier-intersect-vert v b [n 3])
   (remove-duplicates
-          (foldl (lambda (s acc)
-                   (append acc (segment-intersect-vert v s)))
-                 '()
-                 (segments b n))
-          vec=))
+   (foldl (lambda (s acc)
+            (append acc (segment-intersect-vert v s)))
+          '()
+          (segments b n))
+   vec=))
 
 
 ; Number, Bezier, Natural -> BoundingBox
@@ -653,6 +653,10 @@
     (pict:dc
      (lambda (dc dx dy)
        (begin
+         (define old-transform (send dc get-transformation))
+         (define old-pen (send dc get-pen))
+         (define old-brush (send dc get-brush))
+
          (send dc scale f (- f))
          (send dc translate (- min-x) (- max-y))
          (send dc set-pen "Gainsboro" 10 'solid)
@@ -662,5 +666,10 @@
          (send dc set-pen "LightGray" 1 'solid)
          
          (for-each (lambda (b) (bezier->path b path)) bs)
-         (send dc draw-path path dx dy 'winding)))
+         (send dc draw-path path dx dy 'winding)
+         
+         (send* dc
+           [set-transformation old-transform]
+           [set-pen old-pen]
+           [set-brush old-brush])))
      scene-side scene-side)))
