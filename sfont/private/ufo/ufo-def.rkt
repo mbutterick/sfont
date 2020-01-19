@@ -9,7 +9,8 @@
          (only-in slideshow/pict
                   pict?))
 
-(provide 
+(provide
+ make-sfont
  (contract-out
   [name/c (-> any/c boolean?)]
   [kerning/c (-> any/c boolean?)]
@@ -336,6 +337,18 @@
      (apply-font-trans f super-reflect-x))
    (define (reflect-y f)
      (apply-font-trans f super-reflect-y))])
+
+(define (make-sfont
+         #:fontinfo [fontinfo (hasheq)]
+         #:groups [groups (hasheq)]
+         #:kerning [kerning (hasheq)]
+         #:features [features ""]
+         #:glyphs [glyphs null]
+         #:layers [layers (list (layer-info foreground #f (hasheq)))]
+         #:lib [lib (hasheq)]
+         #:data [data (string->path ".")]
+         #:images [images (string->path ".")])
+  (font fontinfo groups kerning features glyphs layers lib data images))
 
 
 
