@@ -105,3 +105,6 @@
 ;(chartme #:angle 9)
 ;(chartme #:angle 10)
 
+(module+ main
+  (require sfont/private/ufo/ufo-read-write)
+  (write-ufo-desktop c))

@@ -8,18 +8,19 @@
          xml/path
          xml/plist)
 
-(provide 
+(provide
+ write-ufo-desktop
  (contract-out
   [read-ufo (->* (path-string?)  font?)]
   [write-ufo (->* (font? path-string?) 
-                 (#:format (one-of/c 2 3)
-                  #:overwrite boolean?)
-                 void?)]))
+                  (#:format (one-of/c 2 3)
+                   #:overwrite boolean?)
+                  void?)]))
 
 
 (struct glif (format name advance unicodes 
-              note image guidelines anchors 
-              contours components lib))
+                     note image guidelines anchors 
+                     contours components lib))
 
 
 ; (listOf (Symbol . T)) -> (listOf keyword)
@@ -109,7 +110,7 @@
          [(list 'anchor args)
           (aux (struct-copy glif acc 
                             [anchors (cons (apply-with-kws build-anchor args)
-                                              (glif-anchors acc))])
+                                           (glif-anchors acc))])
                restelts)]
          [(list-rest 'outline null outlines)
           (let-values ([(contours components anchors) (parse-outlines outlines)])
@@ -125,13 +126,13 @@
          
          [_ acc])]))
   (aux (glif (string->number (se-path* '(glyph #:format) x))
-              (if name name (string->symbol (se-path* '(glyph #:name) x)))
-              (build-advance) null #f #f null null null null (make-immutable-hash))
+             (if name name (string->symbol (se-path* '(glyph #:name) x)))
+             (build-advance) null #f #f null null null null (make-immutable-hash))
        (se-path*/list '(glyph) x)))
 
 ; if the value expr evaluetes to the default value produce the empty list otherwise evaluates expr
 (define-syntax-rule (not-default val defaultvalue expr)
-    (if (equal? val defaultvalue) '() (list expr)))
+  (if (equal? val defaultvalue) '() (list expr)))
 
 ; Number->String
 (define (number->ufostring n)
@@ -148,7 +149,7 @@
               (match g
                 [#f '()]
                 [(glif format name advance codes note image 
-                            guidelines anchors contours components lib)
+                       guidelines anchors contours components lib)
                  `(glyph ((format ,(number->ufostring format))
                           (name ,(symbol->string name)))
                          ,(aux advance)
@@ -209,7 +210,7 @@
                               ,@(not-default yo 0 `(yOffset ,(number->ufostring yo)))
                               ,@(not-default id #f `(identifier ,(symbol->string id)))))]
       
-      )))]
+                )))]
     (aux g)))
 ;    (aux (if (= (glyph-format g) 1)
 ;             (glyph->glyph1 g)
@@ -220,12 +221,12 @@
 (define (read-glif-file path [name #f])
   (xexpr->glif
    (xml->xexpr 
-   ((eliminate-whitespace 
-     '(glyph advance unicode image guideline anchor 
-             outline contour point component lib dict array)
-     identity)
-   (document-element
-    (call-with-input-file path read-xml))))
+    ((eliminate-whitespace 
+      '(glyph advance unicode image guideline anchor 
+              outline contour point component lib dict array)
+      identity)
+     (document-element
+      (call-with-input-file path read-xml))))
    name))
 
 ; Glyph String -> side effects
@@ -235,15 +236,15 @@
       path
     (lambda (o)
       (parameterize ([empty-tag-shorthand 'always])
-                   (display-xml 
-                    (document
-                     (prolog (list (p-i (location 1 0 1) 
-                                        (location 1 38 39) 
-                                        'xml "version=\"1.0\" encoding=\"UTF-8\""))
-                             #f '())
-                     (xexpr->xml (glif->xexpr g))
-                     '())
-                    o)))
+        (display-xml 
+         (document
+          (prolog (list (p-i (location 1 0 1) 
+                             (location 1 38 39) 
+                             'xml "version=\"1.0\" encoding=\"UTF-8\""))
+                  #f '())
+          (xexpr->xml (glif->xexpr g))
+          '())
+         o)))
     #:exists 'replace))
 
 ; Glif Symbol -> Layer 
@@ -284,13 +285,13 @@
                     [(layer _ guidelines anchors contours components)
                      (list guidelines anchors contours components)])
                   (list null null null null))])
-  (match g
-    [(glyph name advance unicodes 
-            note image _ lib)
-     (glif format name advance unicodes note image
-           (first elts) (second elts)
-           (third elts) (fourth elts)
-           lib)])))
+    (match g
+      [(glyph name advance unicodes 
+              note image _ lib)
+       (glif format name advance unicodes note image
+             (first elts) (second elts)
+             (third elts) (fourth elts)
+             lib)])))
                         
 ;
 
@@ -306,8 +307,8 @@
           #f)))
   (define (read-from-text-file path)
     (if (file-exists? path)
-         (call-with-input-file path port->string)
-         #f)) 
+        (call-with-input-file path port->string)
+        #f)) 
   (define (read-groups)
     (let ([g (read-from-plist (make-ufo-path "groups.plist"))])
       (if g
@@ -351,22 +352,22 @@
       (make-hash (map (lambda (g) (cons (glif-name g) g))
                       (hash-map contents
                                 (lambda (k v) (read-glif-file (build-path glifspath v) k)))))))
-;      (map (lambda (l) 
-;             (layer (string->symbol (car l))
-;                    (read-layerinfo (cadr l)) 
-;                    (read-glyphs (cadr l))))
-;           (if layers layers (list (list "public.default" "glyphs"))))))
+  ;      (map (lambda (l) 
+  ;             (layer (string->symbol (car l))
+  ;                    (read-layerinfo (cadr l)) 
+  ;                    (read-glyphs (cadr l))))
+  ;           (if layers layers (list (list "public.default" "glyphs"))))))
           
   (define (read-glyphs)
     (let* ([layer-glifs (read-layer-glifs)]
            [glyphs (hash-map (dict-ref layer-glifs foreground)
-                           (lambda (k v)
-                             (glif->glyph v)))])
+                             (lambda (k v)
+                               (glif->glyph v)))])
       (add-layers-to-glyphs glyphs layer-glifs)))
-;    (let* ([glyphspath (make-ufo-path glyphsdir)]
-;           [contents (read-from-plist (build-path glyphspath "contents.plist"))])
-;      (hash-map contents
-;                (lambda (k v) (read-glif-file (build-path glyphspath v) k)))))
+  ;    (let* ([glyphspath (make-ufo-path glyphsdir)]
+  ;           [contents (read-from-plist (build-path glyphspath "contents.plist"))])
+  ;      (hash-map contents
+  ;                (lambda (k v) (read-glif-file (build-path glyphspath v) k)))))
            
   (define (read-from-directory path [proc #f])
     (if (directory-exists? path)
@@ -464,19 +465,19 @@
                                               
   (define (write-directory dir path [proc #f])
     (if dir
-      (if proc
-          (proc path)
-          (unless (and (directory-exists? path)
-                       (= (file-or-directory-identity path)
-                          (file-or-directory-identity dir)))
-            (begin
-              (when (directory-exists? path)
-                (delete-directory/files path))
-              (copy-directory/files dir path))))
-      (begin
-        (when (directory-exists? path)
-          (delete-directory/files path))
-        (make-directory path))))
+        (if proc
+            (proc path)
+            (unless (and (directory-exists? path)
+                         (= (file-or-directory-identity path)
+                            (file-or-directory-identity dir)))
+              (begin
+                (when (directory-exists? path)
+                  (delete-directory/files path))
+                (copy-directory/files dir path))))
+        (begin
+          (when (directory-exists? path)
+            (delete-directory/files path))
+          (make-directory path))))
   (define (write-on-text-file text path)
     (when text
       (let ([text (string-trim text)])
@@ -500,9 +501,9 @@
                             (cons "glyphs" names))]
                       [(list-rest (layer-info l _ _) rest-layers)
                        (let ([name (namesymbol->filename l "glyphs." "" names)])
-                                (aux (cons (cons l name) acc)
-                                     rest-layers
-                                     (cons name names)))]))])
+                         (aux (cons (cons l name) acc)
+                              rest-layers
+                              (cons name names)))]))])
       (if (dict-has-key? (font-layers f) foreground)
           (if (= format 2) 
               (list (cons foreground "glyphs")) 
@@ -519,13 +520,13 @@
                               [gl (if (get-layer g l)
                                       (glyph->glif g l (if (= format 3) 2 1))
                                       #f)])                        
-                          (begin
-                            (when gl (write-glif-file gl (build-path glyphsdir name)))
-                            (aux rest-glyphs 
-                                 (if gl
-                                     (cons (cons (glyph-name g) name) acc)
-                                     acc)
-                                 (cons name names))))]))])
+                         (begin
+                           (when gl (write-glif-file gl (build-path glyphsdir name)))
+                           (aux rest-glyphs 
+                                (if gl
+                                    (cons (cons (glyph-name g) name) acc)
+                                    acc)
+                                (cons name names))))]))])
       (write-on-plist (aux (hash-values (font-glyphs f)) '() '())
                       (build-path glyphsdir "contents.plist")
                       #t)))
@@ -561,7 +562,7 @@
                                           (make-ufo-path "fontinfo.plist"))))
             (cons 'groups write-groups)
             (cons 'kerning (lambda () (write-kerning (font-kerning f) 
-                                                      (make-ufo-path "kerning.plist"))))
+                                                     (make-ufo-path "kerning.plist"))))
             (cons 'features (lambda () (write-on-text-file (font-features f)
                                                            (make-ufo-path "features.fea"))))
             (cons 'lib (lambda () (write-on-plist (font-lib f) 
@@ -596,6 +597,9 @@
           (cond [(= format 2) (write-ufo2 writer)]
                 [(= format 3) (write-ufo3 writer)]
                 [#t (error "I can only write Ufo 2 and Ufo 3 files")])))))
+
+(define-syntax-rule (write-ufo-desktop FONT)
+  (write-ufo FONT (build-path (find-system-path 'desk-dir) (format "~a.ufo" 'FONT))))
 
 ; PathString -> Void
 ; Delete ufo files from ufo dir
@@ -709,8 +713,8 @@
   (advance (ensure-number width) (ensure-number height)))
 
 (define (build-image #:fileName filename #:xScale [x-scale 1] #:xyScale [xy-scale 0] 
-                        #:yxScale [yx-scale 0] #:yScale [y-scale 1] #:xOffset [x-offset 0]
-                        #:yOffset [y-offset 0] #:color [color #f])
+                     #:yxScale [yx-scale 0] #:yScale [y-scale 1] #:xOffset [x-offset 0]
+                     #:yOffset [y-offset 0] #:color [color #f])
   (image filename (trans-mat (ensure-number x-scale) (ensure-number xy-scale) 
                              (ensure-number yx-scale) (ensure-number y-scale) 
                              (ensure-number x-offset) (ensure-number y-offset))
@@ -718,21 +722,21 @@
 
 
 (define (build-guideline #:x x #:y y  #:angle angle 
-                            #:name [name #f] #:color [color #f] 
-                            #:identifier [identifier #f])
+                         #:name [name #f] #:color [color #f] 
+                         #:identifier [identifier #f])
   (guideline (vec (ensure-number x) (ensure-number y)) (ensure-number angle) name 
              (ensure-color color) (ensure-symbol identifier)))
 
 (define (build-anchor #:x x #:y y #:name name
-                     #:color [color #f] #:identifier [identifier #f])
+                      #:color [color #f] #:identifier [identifier #f])
   (anchor (vec (ensure-number x) (ensure-number y)) name (ensure-color color) (ensure-symbol identifier)))
 
 (define (build-contour #:identifier [identifier #f] #:points [points null])
   (contour (ensure-symbol identifier) points))
 
 (define (build-component #:base base #:xScale [x-scale 1] #:xyScale [xy-scale 0] 
-                        #:yxScale [yx-scale 0] #:yScale [y-scale 1] #:xOffset [x-offset 0]
-                        #:yOffset [y-offset 0] #:identifier [identifier #f])
+                         #:yxScale [yx-scale 0] #:yScale [y-scale 1] #:xOffset [x-offset 0]
+                         #:yOffset [y-offset 0] #:identifier [identifier #f])
   (component (ensure-symbol base) 
              (trans-mat (ensure-number x-scale) (ensure-number xy-scale) 
                         (ensure-number yx-scale) (ensure-number y-scale) 
@@ -740,6 +744,6 @@
              (ensure-symbol identifier)))
 
 (define (build-point #:x x #:y y #:type [type 'offcurve] 
-                        #:smooth [smooth #f] #:name [name #f] #:identifier [identifier #f])
+                     #:smooth [smooth #f] #:name [name #f] #:identifier [identifier #f])
   (point (vec (ensure-number x) (ensure-number y)) (ensure-symbol type)
-             (ensure-smooth smooth) name (ensure-symbol identifier)))
+         (ensure-smooth smooth) name (ensure-symbol identifier)))

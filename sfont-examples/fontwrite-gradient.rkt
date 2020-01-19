@@ -163,5 +163,7 @@
     (print sh)))
 
 
-
+(module+ main
+  (require sfont/private/ufo/ufo-read-write)
+  (write-ufo-desktop (gradients #:n 8)))
 

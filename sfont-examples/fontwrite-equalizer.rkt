@@ -43,3 +43,7 @@
 (equalizer)
 (equalizer #:width 200)
 (equalizer #:s 10)
+
+(module+ main
+  (require sfont/private/ufo/ufo-read-write)
+  (write-ufo-desktop (equalizer)))

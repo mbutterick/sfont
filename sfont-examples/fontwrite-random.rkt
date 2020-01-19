@@ -55,6 +55,10 @@
 (wave-fnt)
 
 (mount-fnt #:r 100)
-                          
+
+
+(module+ main
+  (require sfont/private/ufo/ufo-read-write)
+  (write-ufo-desktop (wave-fnt)))
          
          
