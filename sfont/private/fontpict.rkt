@@ -110,6 +110,9 @@
 (define (draw-font-dc dc ascender descender leading glyphs [kerning (lambda (p) 0)] [size (display-size)] [text (display-text)])
   (let ([f (/  size (+ ascender (- descender)))])
     (begin
+      (define old-brush (send dc get-brush))
+      (define old-pen (send dc get-pen))
+      (define old-transformation (send dc get-transformation))
       (send dc set-brush "black" 'solid)
       (send dc set-pen (display-pen))
       (send dc scale f (- f))
@@ -120,18 +123,21 @@
                                      (if (show-kerning?) kerning (lambda (p) 0)))
                     (let ([current-x (vector-ref (vector-ref (send dc get-transformation) 0) 4)])
                       (send dc translate (/ (- current-x) f) 0))))
-                text))))
+                text)
+      (send dc set-brush old-brush)
+      (send dc set-pen old-pen)
+      (send dc set-transformation old-transformation))))
 
 ; Number Number (listOf DrawableGlyph) ((Symbol Symbol) -> Number) -> pict
 ; draw the current (display-text)
 (define (pictf:font ascender descender glyphs [kerning (lambda (p) 0)])
-   (let* ([leading 1.2]
-          [n-lines (lines (display-text))] 
-          [area-height (* (display-size) (+ 1 n-lines (* (- leading 1) (- n-lines 1))))])
-     (dc
-      (lambda (dc dx dy)
-        (draw-font-dc dc ascender descender leading glyphs kerning))
-      1300 area-height)))
+  (let* ([leading 1.2]
+         [n-lines (lines (display-text))] 
+         [area-height (* (display-size) (+ 1 n-lines (* (- leading 1) (- n-lines 1))))])
+    (dc
+     (lambda (dc dx dy)
+       (draw-font-dc dc ascender descender leading glyphs kerning))
+     1300 area-height)))
 
 ; DC Line Number (listOf DrawableGlyph) ((Symbol Symbol) -> Number) -> void
 ; draw the line to the dc
@@ -147,18 +153,18 @@
 
 #; 
 (define (pictf:font ascender descender . glyphs)
-   (let* ([letters (display-text)]
-          [f (/  (display-size) (+ ascender (- descender)))]     
-          [glyphs-to-display (filter identity (map (lambda (g) (assoc g glyphs)) letters))])
-     (dc
-      (lambda (dc dx dy)
-         (begin
-           (send dc set-brush "black" 'solid)
-           (send dc set-pen (display-pen))
-           (send dc scale f (- f))
-           (send dc translate 0 (- (/ (* (display-size) -0.5) f) ascender))                      
-           (for-each (lambda (g) (pictf:draw-glyph dc g)) glyphs-to-display )))
-      1300 (* (display-size) 2))))
+  (let* ([letters (display-text)]
+         [f (/  (display-size) (+ ascender (- descender)))]     
+         [glyphs-to-display (filter identity (map (lambda (g) (assoc g glyphs)) letters))])
+    (dc
+     (lambda (dc dx dy)
+       (begin
+         (send dc set-brush "black" 'solid)
+         (send dc set-pen (display-pen))
+         (send dc scale f (- f))
+         (send dc translate 0 (- (/ (* (display-size) -0.5) f) ascender))                      
+         (for-each (lambda (g) (pictf:draw-glyph dc g)) glyphs-to-display )))
+     1300 (* (display-size) 2))))
 
 
 (define (draw-glyph-dc dc g f x-min y-max)
@@ -177,13 +183,12 @@
          [h (geom:vec-y vbb)]
          [x-min (geom:vec-x (car bb))]
          [by-max (geom:vec-y (cdr bb))]
-;         [y-max (if ascender
-;                    (max by-max ascender)
-;                    by-max)]
+         ;         [y-max (if ascender
+         ;                    (max by-max ascender)
+         ;                    by-max)]
          [f (cond [upm (/ 400 upm)]
                   [(> h 0) (/ 400 h)]
                   [else 1])])
     (dc
      (lambda (dc dx dy) (draw-glyph-dc dc g f x-min by-max))
-       (* f w) (* f h))))
-      
+     (* f w) (* f h))))
